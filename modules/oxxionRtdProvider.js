@@ -105,7 +105,7 @@ function onAuctionInit (auctionDetails, config, userConsent) {
     };
     xhr.open('POST', endpoint, false);
     xhr.withCredentials = true;
-    xhr.setRequestHeader('Content-Type', 'application/json;');
+    //xhr.setRequestHeader('Content-Type', 'application/json;');
     xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
     xhr.setRequestHeader('Access-Control-Allow-Origin', '*');
     xhr.send(JSON.stringify(payload));
