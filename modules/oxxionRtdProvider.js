@@ -1,7 +1,7 @@
 import { submodule } from '../src/hook.js'
-import { deepAccess, logInfo, logError } from '../src/utils.js'
+import { deepAccess, logInfo } from '../src/utils.js'
 import MD5 from 'crypto-js/md5.js';
-import { ajax } from '../src/ajax.js';
+// import { ajax } from '../src/ajax.js';
 
 const oxxionRtdSearchFor = [ 'adUnitCode', 'auctionId', 'bidder', 'bidderCode', 'bidId', 'cpm', 'creativeId', 'currency', 'width', 'height', 'mediaType', 'netRevenue', 'originalCpm', 'originalCurrency', 'requestId', 'size', 'source', 'status', 'timeToRespond', 'transactionId', 'ttl', 'sizes', 'mediaTypes', 'src', 'userId', 'labelAny', 'adId' ];
 const LOG_PREFIX = 'oxxionRtdProvider submodule: ';
@@ -95,7 +95,20 @@ function onAuctionInit (auctionDetails, config, userConsent) {
     };
     const endpoint = 'https://' + config.params.domain + '.oxxion.io/analytics/bid_rate_interests';
     logInfo(LOG_PREFIX, 'onAuctionInit()', payload, endpoint);
-    getPromisifiedAjax(endpoint, JSON.stringify(payload), {
+
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = () => {
+      if (xhr.readyState === 4) {
+        auctionDetails.bidderRequests = getFilteredBidderRequestsOnBidRates(JSON.parse(xhr.response), auctionDetails.bidderRequests, config.params);
+        logInfo(LOG_PREFIX, 'onAuctionInit() bidderRequests', auctionDetails.bidderRequests);
+      }
+    };
+    xhr.open('POST', endpoint, false);
+    xhr.timeout = config.params.timeout;
+    xhr.withCredentials = true;
+    xhr.setRequestHeader('Content-Type', 'application/json;');
+    xhr.send(JSON.stringify(payload));
+    /* getPromisifiedAjax(endpoint, JSON.stringify(payload), {
       method: 'POST',
       // contentType: 'application/json',
       withCredentials: true
@@ -106,7 +119,7 @@ function onAuctionInit (auctionDetails, config, userConsent) {
         logInfo(LOG_PREFIX, 'onAuctionInit() bidderRequests', auctionDetails.bidderRequests);
         return bidsRateInterests;
       })
-      .catch(error => logError(LOG_PREFIX, 'bidInterestError', error));
+      .catch(error => logError(LOG_PREFIX, 'bidInterestError', error)); */
   }
 }
 
@@ -220,6 +233,7 @@ function onAuctionEnd(auctionDetails, config, userConsent) {
  * @param {Object} [options={}] Xhr options
  * @returns {Promise} A promisified ajax
  */
+/*
 function getPromisifiedAjax (url, data = {}, options = {}) {
   return new Promise((resolve, reject) => {
     const callbacks = {
@@ -232,7 +246,7 @@ function getPromisifiedAjax (url, data = {}, options = {}) {
     };
     ajax(url, callbacks, data, options);
   })
-}
+} */
 
 // function getPromisifiedAjaxMocked (time = 50) {
 //   return new Promise(resolve => setTimeout(() => resolve(INTERESTS_MOCK), time));
