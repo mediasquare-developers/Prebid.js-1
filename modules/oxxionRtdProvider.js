@@ -104,7 +104,6 @@ function onAuctionInit (auctionDetails, config, userConsent) {
       }
     };
     xhr.open('POST', endpoint, false);
-    xhr.timeout = config.params.timeout;
     xhr.withCredentials = true;
     xhr.setRequestHeader('Content-Type', 'application/json;');
     xhr.send(JSON.stringify(payload));
