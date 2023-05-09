@@ -207,7 +207,7 @@ describe('oxxionRtdProvider', () => {
       oxxionSubmodule.onAuctionEndEvent(auctionEnd, moduleConfig);
     });
     it('check bid filtering', function() {
-      /* let requestsList = oxxionSubmodule.getRequestsList(originalBidderRequests);
+      let requestsList = oxxionSubmodule.getRequestsList(originalBidderRequests);
       expect(requestsList.length).to.equal(3);
       expect(originalBidderRequests.length).to.equal(2);
       expect(originalBidderRequests[0].bids.length).to.equal(2);
@@ -218,7 +218,7 @@ describe('oxxionRtdProvider', () => {
       expect(filteredBiddderRequests[0]).to.have.property('bids');
       expect(filteredBiddderRequests[0].bids.length).to.equal(1);
       expect(filteredBiddderRequests[1]).to.have.property('bids');
-      expect(filteredBiddderRequests[1].bids.length).to.equal(1); */
+      expect(filteredBiddderRequests[1].bids.length).to.equal(1);
     });
     it('check vastImpUrl', function() {
       expect(auctionEnd.bidsReceived[0]).to.have.property('vastImpUrl');
