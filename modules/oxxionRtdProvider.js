@@ -1,39 +1,22 @@
 import { submodule } from '../src/hook.js'
-import { deepAccess, logInfo } from '../src/utils.js'
+import { deepAccess, logInfo, logError } from '../src/utils.js'
 import MD5 from 'crypto-js/md5.js';
-// import { ajax } from '../src/ajax.js';
+import { ajax } from '../src/ajax.js';
 
 const oxxionRtdSearchFor = [ 'adUnitCode', 'auctionId', 'bidder', 'bidderCode', 'bidId', 'cpm', 'creativeId', 'currency', 'width', 'height', 'mediaType', 'netRevenue', 'originalCpm', 'originalCurrency', 'requestId', 'size', 'source', 'status', 'timeToRespond', 'transactionId', 'ttl', 'sizes', 'mediaTypes', 'src', 'userId', 'labelAny', 'adId' ];
 const LOG_PREFIX = 'oxxionRtdProvider submodule: ';
+
 const allAdUnits = [];
-// const INTERESTS_MOCK = [
-//   {
-//     id: 0,
-//     rate: 0.014
-//   },
-//   {
-//     id: 1,
-//     rate: 0.9
-//   },
-//   {
-//     id: 2,
-//     rate: 1.0
-//   }
-// ];
 
 /** @type {RtdSubmodule} */
 export const oxxionSubmodule = {
   name: 'oxxionRtd',
   init: init,
-  onAuctionInitEvent: onAuctionInit,
   onAuctionEndEvent: onAuctionEnd,
   getBidRequestData: getAdUnits,
-  getRequestsList: getRequestsList,
-  getFilteredBidderRequestsOnBidRates: getFilteredBidderRequestsOnBidRates,
 };
 
 function init(config, userConsent) {
-  logInfo(LOG_PREFIX, 'init()', config, userConsent);
   if (!config.params || !config.params.domain || !config.params.contexts || !Array.isArray(config.params.contexts) || config.params.contexts.length == 0) {
     return false
   }
@@ -41,105 +24,60 @@ function init(config, userConsent) {
 }
 
 function getAdUnits(reqBidsConfigObj, callback, config, userConsent) {
-  const reqAdUnits = reqBidsConfigObj.adUnits;
-  if (Array.isArray(reqAdUnits)) {
-    reqAdUnits.forEach(adunit => {
-      if (config.params.contexts.includes(deepAccess(adunit, 'mediaTypes.video.context'))) {
-        allAdUnits.push(adunit);
-      }
+  if (config.params.threshold && config.params.samplingRate) {
+    logInfo(LOG_PREFIX, 'getBidRequestData()', {
+      reqBidsConfigObj,
+      config,
+      userConsent
     });
-  }
-}
-
-function getRequestsList(bidderRequests) {
-  let count = 0;
-  return bidderRequests.flatMap(({
-    bids = [],
-    bidderCode = ''
-  }) => {
-    return bids.reduce((acc, {adUnitCode = '', params = {}, bidder = '', mediaTypes = {}}, index) => {
+    let count = 0;
+    const requests = reqBidsConfigObj.adUnits.flatMap(({
+      bids = [],
+      mediaTypes = {},
+      code = ''
+    }) => bids.reduce((acc, { bidder = '', params = {} }, index) => {
       const id = count++;
-      bids[index].oxxionId = id;
+      bids[index]._id = id;
       return acc.concat({
         id,
-        adUnit: adUnitCode,
+        adUnit: code,
         bidder,
         mediaTypes,
         params: MD5(JSON.stringify(params)).toString()
       });
-    }, []);
-  });
-}
-
-/**
- * Inspect and/or update the auction on AUCTION_INIT event.
- * Check all bids and their level of interest.
- *
- * @param {Object} auctionDetails
- * @param {Object} config
- * @param {Object} userConsent
- */
-function onAuctionInit (auctionDetails, config, userConsent) {
-  logInfo(LOG_PREFIX, 'onAuctionInit()', {
-    auctionDetails,
-    config,
-    userConsent
-  });
-  // TODO: Do we must make an adUnits copy in order to avoid intermediate mutation?
-  const gdpr = userConsent.gdpr.consentString;
-  if (auctionDetails.bidderRequests) {
-    const requests = getRequestsList(auctionDetails.bidderRequests);
+    }, []));
+    const gdpr = userConsent.gdpr.consentString;
     const payload = {
       gdpr,
       requests
     };
     const endpoint = 'https://' + config.params.domain + '.oxxion.io/analytics/bid_rate_interests';
-    logInfo(LOG_PREFIX, 'onAuctionInit()', payload, endpoint);
-
-    var xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = () => {
-      if (xhr.readyState === 4) {
-        auctionDetails.bidderRequests = getFilteredBidderRequestsOnBidRates(JSON.parse(xhr.response), auctionDetails.bidderRequests, config.params);
-        logInfo(LOG_PREFIX, 'onAuctionInit() bidderRequests', auctionDetails.bidderRequests);
-      }
-    };
-    xhr.open('POST', endpoint, false);
-    xhr.withCredentials = true;
-    //xhr.setRequestHeader('Content-Type', 'application/json;');
-    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-    xhr.setRequestHeader('Access-Control-Allow-Origin', '*');
-    xhr.send(JSON.stringify(payload));
-    /* getPromisifiedAjax(endpoint, JSON.stringify(payload), {
+    logInfo(LOG_PREFIX, 'getBidRequestData()', JSON.parse(JSON.stringify(payload)), endpoint);
+    getPromisifiedAjax(endpoint, JSON.stringify(payload), {
       method: 'POST',
-      // contentType: 'application/json',
       withCredentials: true
-    })
-    // getPromisifiedAjaxMocked()
-      .then(bidsRateInterests => {
-        auctionDetails.bidderRequests = getFilteredBidderRequestsOnBidRates(bidsRateInterests, auctionDetails.bidderRequests, config.params);
-        logInfo(LOG_PREFIX, 'onAuctionInit() bidderRequests', auctionDetails.bidderRequests);
-        return bidsRateInterests;
-      })
-      .catch(error => logError(LOG_PREFIX, 'bidInterestError', error)); */
+    }).then(bidsRateInterests => {
+      reqBidsConfigObj.adUnits = bidsRateInterests.length
+        ? getFilteredAdUnitsOnBidRates(bidsRateInterests, reqBidsConfigObj.adUnits, config.params)
+        : reqBidsConfigObj.adUnits;
+      logInfo(LOG_PREFIX, 'getBidRequestData() adUnits', JSON.parse(JSON.stringify(reqBidsConfigObj.adUnits)));
+      if (typeof callback == 'function') { callback(); }
+    }).catch(error => logError(LOG_PREFIX, 'bidInterestError', error));
   }
-}
+  if (config.params.contexts && Array.isArray(config.params.contexts) && config.params.contexts.length > 0) {
+    const reqAdUnits = reqBidsConfigObj.adUnits;
+    if (Array.isArray(reqAdUnits)) {
+      reqAdUnits.forEach(adunit => {
+        if (config.params.contexts.includes(deepAccess(adunit, 'mediaTypes.video.context'))) {
+          allAdUnits.push(adunit);
+        }
+      });
+    }
+    if (!(config.params.threshold && config.params.samplingRate) && typeof callback == 'function') {
+      callback(); 
+    }
 
-function getFilteredBidderRequestsOnBidRates(bidsRateInterests, bidders, params, force = false) {
-  const { threshold, samplingRate } = params;
-  const interstingBidsId = bidsRateInterests.reduce((acc, current) => {
-    if (current.suggestion || current.rate > threshold) { acc.push(current.id) }
-    return acc
-  }, []);
-  let newBidders = [];
-  bidders.forEach(bidder => {
-    var newBidder = JSON.parse(JSON.stringify(bidder))
-    newBidder.bids = []
-    bidder.bids.forEach(bid => {
-      if (interstingBidsId.includes(bid.oxxionId) || (!force && getRandomNumber(100) > samplingRate)) { newBidder.bids.push(bid) }
-    });
-    if (newBidder.bids.length > 0) { newBidders.push(newBidder) }
-  });
-  return newBidders;
+  }
 }
 
 function insertVideoTracking(bidResponse, config, maxCpm) {
@@ -234,7 +172,6 @@ function onAuctionEnd(auctionDetails, config, userConsent) {
  * @param {Object} [options={}] Xhr options
  * @returns {Promise} A promisified ajax
  */
-/*
 function getPromisifiedAjax (url, data = {}, options = {}) {
   return new Promise((resolve, reject) => {
     const callbacks = {
@@ -247,11 +184,40 @@ function getPromisifiedAjax (url, data = {}, options = {}) {
     };
     ajax(url, callbacks, data, options);
   })
-} */
+}
 
-// function getPromisifiedAjaxMocked (time = 50) {
-//   return new Promise(resolve => setTimeout(() => resolve(INTERESTS_MOCK), time));
-// }
+/**
+ * Filter bids and adUnits against interesting bids rates.
+ *
+ * @param {Array} bidsRateInterests Bids rates interests
+ * @param {Object} adUnits Object containing auction details
+ * @param {Object} params Module configuration parameters
+ * @returns {Array} Filtered adUnits
+ */
+function getFilteredAdUnitsOnBidRates (bidsRateInterests, adUnits, params) {
+  const { threshold, samplingRate } = params;
+  // Separate bidsRateInterests in two groups against threshold & samplingRate
+  const { interestingBidsRates, uninterestingBidsRates } = bidsRateInterests.reduce((acc, interestingBid) => {
+    const isBidRateUpper = interestingBid.rate === true || interestingBid.rate > threshold;
+    const isBidInteresting = isBidRateUpper || getRandomNumber(100) > samplingRate;
+    const key = isBidInteresting ? 'interestingBidsRates' : 'uninterestingBidsRates';
+    acc[key].push(interestingBid);
+    return acc;
+  }, {
+    interestingBidsRates: [],
+    uninterestingBidsRates: [] // Do something with later
+  });
+  logInfo(LOG_PREFIX, 'getFilteredAdUnitsOnBidRates()', interestingBidsRates, uninterestingBidsRates);
+  // Filter bids and adUnits against interesting bids rates
+  return adUnits.filter(({ bids = [] }, adUnitIndex) => {
+    adUnits[adUnitIndex].bids = bids.filter(bid => {
+      const index = interestingBidsRates.findIndex(({ id }) => id === bid._id);
+      delete bid._id;
+      return index !== -1;
+    });
+    return !!adUnits[adUnitIndex].bids.length;
+  });
+}
 
 /**
  * Get a random number
