@@ -14,13 +14,15 @@ export const oxxionSubmodule = {
   init: init,
   onAuctionEndEvent: onAuctionEnd,
   getBidRequestData: getAdUnits,
+  getRequestsList: getRequestsList,
+  getFilteredAdUnitsOnBidRates: getFilteredAdUnitsOnBidRates,
 };
 
 function init(config, userConsent) {
-  if (!config.params || !config.params.domain || !config.params.contexts || !Array.isArray(config.params.contexts) || config.params.contexts.length == 0) {
-    return false
-  }
-  return true;
+  if (!config.params || !config.params.domain) { return false }
+  if (config.params.contexts && Array.isArray(config.params.contexts) && config.params.contexts.length > 0) { return true; }
+  if (config.params.threshold && config.params.samplingRate) { return true }
+  return false;
 }
 
 function getAdUnits(reqBidsConfigObj, callback, config, userConsent) {
@@ -30,23 +32,8 @@ function getAdUnits(reqBidsConfigObj, callback, config, userConsent) {
       config,
       userConsent
     });
-    let count = 0;
-    const requests = reqBidsConfigObj.adUnits.flatMap(({
-      bids = [],
-      mediaTypes = {},
-      code = ''
-    }) => bids.reduce((acc, { bidder = '', params = {} }, index) => {
-      const id = count++;
-      bids[index]._id = id;
-      return acc.concat({
-        id,
-        adUnit: code,
-        bidder,
-        mediaTypes,
-        params: MD5(JSON.stringify(params)).toString()
-      });
-    }, []));
-    const gdpr = userConsent.gdpr.consentString;
+    const requests = getRequestsList(reqBidsConfigObj);
+    const gdpr = userConsent && userConsent.gdpr ? userConsent.gdpr.consentString : null;
     const payload = {
       gdpr,
       requests
@@ -74,9 +61,8 @@ function getAdUnits(reqBidsConfigObj, callback, config, userConsent) {
       });
     }
     if (!(config.params.threshold && config.params.samplingRate) && typeof callback == 'function') {
-      callback(); 
+      callback();
     }
-
   }
 }
 
@@ -227,6 +213,25 @@ function getFilteredAdUnitsOnBidRates (bidsRateInterests, adUnits, params) {
  */
 function getRandomNumber (max = 10) {
   return Math.round(Math.random() * max);
+}
+
+function getRequestsList(reqBidsConfigObj) {
+  let count = 0;
+  reqBidsConfigObj.adUnits.flatMap(({
+    bids = [],
+    mediaTypes = {},
+    code = ''
+  }) => bids.reduce((acc, { bidder = '', params = {} }, index) => {
+    const id = count++;
+    bids[index]._id = id;
+    return acc.concat({
+      id,
+      adUnit: code,
+      bidder,
+      mediaTypes,
+      params: MD5(JSON.stringify(params)).toString()
+    });
+  }, []));
 }
 
 submodule('realTimeData', oxxionSubmodule);
