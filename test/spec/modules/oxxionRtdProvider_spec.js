@@ -178,7 +178,7 @@ let originalBidderRequests = [{
 
 let bidInterests = [
   {'id': 0, 'rate': 50.0, 'suggestion': true},
-  {'id': 1, 'rate': 0.0, 'suggestion': false},
+  {'id': 1, 'rate': 50.0, 'suggestion': false},
   {'id': 2, 'rate': 0.0, 'suggestion': true}
 ];
 
@@ -207,13 +207,12 @@ describe('oxxionRtdProvider', () => {
       oxxionSubmodule.onAuctionEndEvent(auctionEnd, moduleConfig);
     });
     it('check bid filtering', function() {
-      let requestsList = oxxionSubmodule.getRequestsList(originalBidderRequests);
+      let requestsList = oxxionSubmodule.getRequestsList(request);
       expect(requestsList.length).to.equal(3);
-      expect(originalBidderRequests.length).to.equal(2);
-      expect(originalBidderRequests[0].bids.length).to.equal(2);
-      expect(originalBidderRequests[1].bids.length).to.equal(1);
-      expect(originalBidderRequests[0].bids[0]).to.have.property('oxxionId');
-      let filteredBiddderRequests = oxxionSubmodule.getFilteredBidderRequestsOnBidRates(bidInterests, originalBidderRequests, moduleConfig.params, true);
+      expect(requestsList[0]).to.have.property('id');
+      expect(request.adUnits[0].bids[0]).to.have.property('_id');
+      expect(requestsList[0].id).to.equal(request.adUnits[0].bids[0]._id);
+      let filteredBiddderRequests = oxxionSubmodule.getFilteredAdUnitsOnBidRates(bidInterests, request.adUnits, moduleConfig.params);
       expect(filteredBiddderRequests.length).to.equal(2);
       expect(filteredBiddderRequests[0]).to.have.property('bids');
       expect(filteredBiddderRequests[0].bids.length).to.equal(1);

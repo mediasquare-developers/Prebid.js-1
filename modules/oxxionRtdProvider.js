@@ -217,7 +217,7 @@ function getRandomNumber (max = 10) {
 
 function getRequestsList(reqBidsConfigObj) {
   let count = 0;
-  reqBidsConfigObj.adUnits.flatMap(({
+  return reqBidsConfigObj.adUnits.flatMap(({
     bids = [],
     mediaTypes = {},
     code = ''
