@@ -184,7 +184,7 @@ function getFilteredAdUnitsOnBidRates (bidsRateInterests, adUnits, params) {
   const { threshold, samplingRate } = params;
   // Separate bidsRateInterests in two groups against threshold & samplingRate
   const { interestingBidsRates, uninterestingBidsRates } = bidsRateInterests.reduce((acc, interestingBid) => {
-    const isBidRateUpper = interestingBid.rate === true || interestingBid.rate > threshold;
+    const isBidRateUpper = interestingBid.suggestion || interestingBid.rate > threshold;
     const isBidInteresting = isBidRateUpper || getRandomNumber(100) > samplingRate;
     const key = isBidInteresting ? 'interestingBidsRates' : 'uninterestingBidsRates';
     acc[key].push(interestingBid);
