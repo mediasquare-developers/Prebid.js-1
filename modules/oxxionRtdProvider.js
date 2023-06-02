@@ -49,7 +49,7 @@ function getAdUnits(reqBidsConfigObj, callback, config, userConsent) {
         [reqBidsConfigObj.adUnits, filteredBids] = getFilteredAdUnitsOnBidRates(bidsRateInterests, reqBidsConfigObj.adUnits, config.params, true);
       }
       logInfo(LOG_PREFIX, 'getBidRequestData() adUnits', JSON.parse(JSON.stringify(reqBidsConfigObj.adUnits)));
-      if (len(filteredBids) > 0) {
+      if (filteredBids.length) > 0) {
         logInfo(LOG_PREFIX, 'getBidRequestData() filtered bids', JSON.parse(JSON.stringify(filteredBids)));
         getPromisifiedAjax('https://' + config.params.domain + '.oxxion.io/analytics/request_rejecteds', JSON.stringify(filteredBids), {
           method: 'POST',
