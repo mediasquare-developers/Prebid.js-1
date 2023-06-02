@@ -205,8 +205,12 @@ function getFilteredAdUnitsOnBidRates (bidsRateInterests, adUnits, params, useSa
   const newAdUnits = adUnits.filter(({ bids = [] }, adUnitIndex) => {
     adUnits[adUnitIndex].bids = bids.filter(bid => {
       const index = interestingBidsRates.findIndex(({ id }) => id === bid._id);
-      if (!index)
-        filteredBids.push(bids[index]);
+      if (!index) {
+        let tmp_bid = bids[index];
+        tmp_bid['code'] = adUnits[adUnitIndex].code;
+        tmp_bid['mediaTypes'] = adUnits[adUnitIndex].mediaTypes;
+        filteredBids.push(tmp_bid);
+      }
       delete bid._id;
       return index !== -1;
     });
