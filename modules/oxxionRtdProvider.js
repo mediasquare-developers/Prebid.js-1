@@ -49,11 +49,13 @@ function getAdUnits(reqBidsConfigObj, callback, config, userConsent) {
         [reqBidsConfigObj.adUnits, filteredBids] = getFilteredAdUnitsOnBidRates(bidsRateInterests, reqBidsConfigObj.adUnits, config.params, true);
       }
       logInfo(LOG_PREFIX, 'getBidRequestData() adUnits', JSON.parse(JSON.stringify(reqBidsConfigObj.adUnits)));
-      logInfo(LOG_PREFIX, 'getBidRequestData() filtered bids', JSON.parse(JSON.stringify(filteredBids)));
-      getPromisifiedAjax('https://' + config.params.domain + '.oxxion.io/analytics/request_rejecteds', JSON.stringify(filteredBids), {
-        method: 'POST',
-        withCredentials: true
-      });
+      if (len(filteredBids) > 0) {
+        logInfo(LOG_PREFIX, 'getBidRequestData() filtered bids', JSON.parse(JSON.stringify(filteredBids)));
+        getPromisifiedAjax('https://' + config.params.domain + '.oxxion.io/analytics/request_rejecteds', JSON.stringify(filteredBids), {
+          method: 'POST',
+          withCredentials: true
+        });
+      }
       if (typeof callback == 'function') { callback(); }
     }).catch(error => logError(LOG_PREFIX, 'bidInterestError', error));
   }
@@ -191,7 +193,7 @@ function getFilteredAdUnitsOnBidRates (bidsRateInterests, adUnits, params, useSa
   const filteredBids = [];
   // Separate bidsRateInterests in two groups against threshold & samplingRate
   const { interestingBidsRates, uninterestingBidsRates } = bidsRateInterests.reduce((acc, interestingBid) => {
-    const isBidRateUpper = interestingBid.rate > threshold || interestingBid.suggestion;
+    const isBidRateUpper = interestingBid.rate === true || interestingBid.rate > threshold || interestingBid.suggestion;
     const isBidInteresting = isBidRateUpper || (getRandomNumber(100) > samplingRate && useSampling);
     const key = isBidInteresting ? 'interestingBidsRates' : 'uninterestingBidsRates';
     acc[key].push(interestingBid);
