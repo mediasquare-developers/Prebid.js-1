@@ -32,6 +32,7 @@ function getAdUnits(reqBidsConfigObj, callback, config, userConsent) {
       config,
       userConsent
     });
+    let filteredBids;
     const requests = getRequestsList(reqBidsConfigObj);
     const gdpr = userConsent && userConsent.gdpr ? userConsent.gdpr.consentString : null;
     const payload = {
@@ -44,10 +45,15 @@ function getAdUnits(reqBidsConfigObj, callback, config, userConsent) {
       method: 'POST',
       withCredentials: true
     }).then(bidsRateInterests => {
-      reqBidsConfigObj.adUnits = bidsRateInterests.length
-        ? getFilteredAdUnitsOnBidRates(bidsRateInterests, reqBidsConfigObj.adUnits, config.params)
-        : reqBidsConfigObj.adUnits;
+      if (bidsRateInterests.length) {
+        [reqBidsConfigObj.adUnits, filteredBids] = getFilteredAdUnitsOnBidRates(bidsRateInterests, reqBidsConfigObj.adUnits, config.params);
+      }
       logInfo(LOG_PREFIX, 'getBidRequestData() adUnits', JSON.parse(JSON.stringify(reqBidsConfigObj.adUnits)));
+      logInfo(LOG_PREFIX, 'getBidRequestData() filtered bids', JSON.parse(JSON.stringify(filteredBids)));
+      getPromisifiedAjax('https://' + config.params.domain + '.oxxion.io/analytics/request_rejecteds', JSON.stringify(filteredBids), {
+        method: 'POST',
+        withCredentials: true
+      });
       if (typeof callback == 'function') { callback(); }
     }).catch(error => logError(LOG_PREFIX, 'bidInterestError', error));
   }
@@ -182,9 +188,10 @@ function getPromisifiedAjax (url, data = {}, options = {}) {
  */
 function getFilteredAdUnitsOnBidRates (bidsRateInterests, adUnits, params) {
   const { threshold, samplingRate } = params;
+  const filteredBids = [];
   // Separate bidsRateInterests in two groups against threshold & samplingRate
   const { interestingBidsRates, uninterestingBidsRates } = bidsRateInterests.reduce((acc, interestingBid) => {
-    const isBidRateUpper = interestingBid.suggestion || interestingBid.rate > threshold;
+    const isBidRateUpper = interestingBid.rate === true || interestingBid.rate > threshold;
     const isBidInteresting = isBidRateUpper || getRandomNumber(100) > samplingRate;
     const key = isBidInteresting ? 'interestingBidsRates' : 'uninterestingBidsRates';
     acc[key].push(interestingBid);
@@ -198,10 +205,11 @@ function getFilteredAdUnitsOnBidRates (bidsRateInterests, adUnits, params) {
   return adUnits.filter(({ bids = [] }, adUnitIndex) => {
     adUnits[adUnitIndex].bids = bids.filter(bid => {
       const index = interestingBidsRates.findIndex(({ id }) => id === bid._id);
+      filteredBids.push(bids[index]);
       delete bid._id;
       return index !== -1;
     });
-    return !!adUnits[adUnitIndex].bids.length;
+    return [!!adUnits[adUnitIndex].bids.length, filteredBids];
   });
 }
 
@@ -217,7 +225,7 @@ function getRandomNumber (max = 10) {
 
 function getRequestsList(reqBidsConfigObj) {
   let count = 0;
-  return reqBidsConfigObj.adUnits.flatMap(({
+  reqBidsConfigObj.adUnits.flatMap(({
     bids = [],
     mediaTypes = {},
     code = ''
