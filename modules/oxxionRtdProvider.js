@@ -46,7 +46,7 @@ function getAdUnits(reqBidsConfigObj, callback, config, userConsent) {
       withCredentials: true
     }).then(bidsRateInterests => {
       if (bidsRateInterests.length) {
-        [reqBidsConfigObj.adUnits, filteredBids] = getFilteredAdUnitsOnBidRates(bidsRateInterests, reqBidsConfigObj.adUnits, config.params);
+        [reqBidsConfigObj.adUnits, filteredBids] = getFilteredAdUnitsOnBidRates(bidsRateInterests, reqBidsConfigObj.adUnits, config.params, true);
       }
       logInfo(LOG_PREFIX, 'getBidRequestData() adUnits', JSON.parse(JSON.stringify(reqBidsConfigObj.adUnits)));
       logInfo(LOG_PREFIX, 'getBidRequestData() filtered bids', JSON.parse(JSON.stringify(filteredBids)));
@@ -186,13 +186,13 @@ function getPromisifiedAjax (url, data = {}, options = {}) {
  * @param {Object} params Module configuration parameters
  * @returns {Array} Filtered adUnits
  */
-function getFilteredAdUnitsOnBidRates (bidsRateInterests, adUnits, params) {
+function getFilteredAdUnitsOnBidRates (bidsRateInterests, adUnits, params, useSampling) {
   const { threshold, samplingRate } = params;
   const filteredBids = [];
   // Separate bidsRateInterests in two groups against threshold & samplingRate
   const { interestingBidsRates, uninterestingBidsRates } = bidsRateInterests.reduce((acc, interestingBid) => {
-    const isBidRateUpper = interestingBid.rate === true || interestingBid.rate > threshold;
-    const isBidInteresting = isBidRateUpper || getRandomNumber(100) > samplingRate;
+    const isBidRateUpper = interestingBid.rate > threshold || interestingBid.suggestion;
+    const isBidInteresting = isBidRateUpper || (getRandomNumber(100) > samplingRate && useSampling);
     const key = isBidInteresting ? 'interestingBidsRates' : 'uninterestingBidsRates';
     acc[key].push(interestingBid);
     return acc;
@@ -202,15 +202,17 @@ function getFilteredAdUnitsOnBidRates (bidsRateInterests, adUnits, params) {
   });
   logInfo(LOG_PREFIX, 'getFilteredAdUnitsOnBidRates()', interestingBidsRates, uninterestingBidsRates);
   // Filter bids and adUnits against interesting bids rates
-  return adUnits.filter(({ bids = [] }, adUnitIndex) => {
+  const newAdUnits = adUnits.filter(({ bids = [] }, adUnitIndex) => {
     adUnits[adUnitIndex].bids = bids.filter(bid => {
       const index = interestingBidsRates.findIndex(({ id }) => id === bid._id);
-      filteredBids.push(bids[index]);
+      if (!index)
+        filteredBids.push(bids[index]);
       delete bid._id;
       return index !== -1;
     });
-    return [!!adUnits[adUnitIndex].bids.length, filteredBids];
+    return !!adUnits[adUnitIndex].bids.length;
   });
+  return [newAdUnits, filteredBids];
 }
 
 /**
@@ -225,7 +227,7 @@ function getRandomNumber (max = 10) {
 
 function getRequestsList(reqBidsConfigObj) {
   let count = 0;
-  reqBidsConfigObj.adUnits.flatMap(({
+  return reqBidsConfigObj.adUnits.flatMap(({
     bids = [],
     mediaTypes = {},
     code = ''

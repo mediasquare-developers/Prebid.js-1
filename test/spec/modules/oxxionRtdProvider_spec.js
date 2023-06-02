@@ -212,7 +212,8 @@ describe('oxxionRtdProvider', () => {
       expect(requestsList[0]).to.have.property('id');
       expect(request.adUnits[0].bids[0]).to.have.property('_id');
       expect(requestsList[0].id).to.equal(request.adUnits[0].bids[0]._id);
-      let filteredBiddderRequests = oxxionSubmodule.getFilteredAdUnitsOnBidRates(bidInterests, request.adUnits, moduleConfig.params);
+      const [filteredBiddderRequests, filteredBids] = oxxionSubmodule.getFilteredAdUnitsOnBidRates(bidInterests, request.adUnits, moduleConfig.params, false);
+      expect(filteredBids.length).to.equal(1);
       expect(filteredBiddderRequests.length).to.equal(2);
       expect(filteredBiddderRequests[0]).to.have.property('bids');
       expect(filteredBiddderRequests[0].bids.length).to.equal(1);
