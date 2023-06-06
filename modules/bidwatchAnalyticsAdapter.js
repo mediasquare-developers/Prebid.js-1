@@ -129,9 +129,11 @@ function addAuctionEnd(args) {
   let eventType = AUCTION_END;
   if (saveEvents[eventType] == undefined) { saveEvents[eventType] = [] }
   saveEvents[eventType].push(args);
-  let argsCleaned = cleanAuctionEnd(JSON.parse(JSON.stringify(args)));
-  if (auctionEnd[eventType] == undefined) { auctionEnd[eventType] = [] }
-  auctionEnd[eventType].push(argsCleaned);
+  try {
+    let argsCleaned = cleanAuctionEnd(JSON.parse(JSON.stringify(args)));
+    if (auctionEnd[eventType] == undefined) { auctionEnd[eventType] = [] }
+    auctionEnd[eventType].push(argsCleaned);
+  } catch(e) {}
 }
 
 function handleBidWon(args) {
