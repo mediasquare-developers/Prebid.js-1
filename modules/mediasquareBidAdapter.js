@@ -128,7 +128,7 @@ export const spec = {
           }
         };
         if ('context' in value) {
-	  bidResponse['mediasquare']['context'] = value['context'];
+          bidResponse['mediasquare']['context'] = value['context'];
         }
         if ('match' in value) {
           bidResponse['mediasquare']['match'] = value['match'];
@@ -180,7 +180,7 @@ export const spec = {
     if (bid.hasOwnProperty('mediasquare')) {
       for (let i = 0; i < paramsToSearchFor.length; i++) {
         if (bid['mediasquare'].hasOwnProperty(paramsToSearchFor[i])) {
-	  params[paramsToSearchFor[i]] = bid['mediasquare'][paramsToSearchFor[i]];
+          params[paramsToSearchFor[i]] = bid['mediasquare'][paramsToSearchFor[i]];
         }
       }
     };
