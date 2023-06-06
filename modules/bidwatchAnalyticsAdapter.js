@@ -77,7 +77,10 @@ function cleanAuctionEnd(args) {
 }
 
 function cleanCreatives(args) {
-  return filterAttributes(args, false);
+  try {
+    let stringArgs = JSON.parse(JSON.stringify(args));
+    return filterAttributes(stringArgs, false);
+  } catch (e) {}
 }
 
 function enhanceMediaType(arg) {
@@ -93,7 +96,7 @@ function enhanceMediaType(arg) {
 
 function addBidResponse(args) {
   let eventType = BID_RESPONSE;
-  let argsCleaned = cleanCreatives(JSON.parse(JSON.stringify(args))); ;
+  let argsCleaned = cleanCreatives(args); ;
   if (allEvents[eventType] == undefined) { allEvents[eventType] = [] }
   allEvents[eventType].push(argsCleaned);
 }

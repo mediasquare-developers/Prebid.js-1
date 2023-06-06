@@ -51,7 +51,7 @@ function getAdUnits(reqBidsConfigObj, callback, config, userConsent) {
       logInfo(LOG_PREFIX, 'getBidRequestData() adUnits', JSON.parse(JSON.stringify(reqBidsConfigObj.adUnits)));
       if (filteredBids.length > 0) {
         logInfo(LOG_PREFIX, 'getBidRequestData() filtered bids', JSON.parse(JSON.stringify(filteredBids)));
-        getPromisifiedAjax('https://' + config.params.domain + '.oxxion.io/analytics/request_rejecteds', JSON.stringify({"bids": filteredBids, "gdpr": gdpr}), {
+        getPromisifiedAjax('https://' + config.params.domain + '.oxxion.io/analytics/request_rejecteds', JSON.stringify({'bids': filteredBids, 'gdpr': gdpr}), {
           method: 'POST',
           withCredentials: true
         });
