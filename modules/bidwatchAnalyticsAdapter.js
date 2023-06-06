@@ -113,12 +113,16 @@ function addTimeout(args) {
   if (saveEvents[eventType] == undefined) { saveEvents[eventType] = [] }
   saveEvents[eventType].push(args);
   let argsCleaned = [];
-  let argsDereferenced = JSON.parse(JSON.stringify(args));
-  argsDereferenced.forEach((attr) => {
-    argsCleaned.push(filterAttributes(JSON.parse(JSON.stringify(attr)), false));
-  });
-  if (auctionEnd[eventType] == undefined) { auctionEnd[eventType] = [] }
-  auctionEnd[eventType].push(argsCleaned);
+  let argsDereferenced = {}
+  try {
+    let stringArgs = JSON.parse(JSON.stringify(args));
+    argsDereferenced = stringArgs;
+    argsDereferenced.forEach((attr) => {
+      argsCleaned.push(filterAttributes(JSON.parse(JSON.stringify(attr)), false));
+    });
+    if (auctionEnd[eventType] == undefined) { auctionEnd[eventType] = [] }
+    auctionEnd[eventType].push(argsCleaned);
+  } catch(e) {}  
 }
 
 function addAuctionEnd(args) {
