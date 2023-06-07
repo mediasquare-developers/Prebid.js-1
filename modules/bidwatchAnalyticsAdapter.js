@@ -122,19 +122,8 @@ function addTimeout(args) {
 }
 
 function dereferenceWithoutRenderer(args) {
-  let setty = new Set();
-  let stringified = JSON.stringify(args, (k, v) => {
-    if (typeof v === 'object') {
-      if (!setty.has(v)) {
-        setty.add(v);
-        return v;
-      } else {
-        return undefined;
-      }
-    }
-    return v;
-  });
-  return stringified;
+  let copy = {...args};
+  return JSON.stringify(copy);
 }
 
 function addAuctionEnd(args) {
