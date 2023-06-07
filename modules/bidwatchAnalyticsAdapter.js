@@ -123,7 +123,7 @@ function addTimeout(args) {
 
 function dereferenceWithoutRenderer(args) {
   const { render, ...objectStringify } = args;
-  if (render) {// make gulp test ok}
+  if (render) {/* make gulp test ok */}
   return objectStringify;
 }
 function addAuctionEnd(args) {
