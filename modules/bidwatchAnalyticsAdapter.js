@@ -136,14 +136,14 @@ function dereferenceWithoutRenderer(args) {
         tmp[key] = args.bidsReceived[key].renderer;
         delete args.bidsReceived[key].renderer;
       }
-      let stringified = JSON.stringify(args);
-      for (let key in tmp) {
-        args.bidsReceived[key].renderer = tmp[key];
-      }
-      return stringified;
     }
-    return JSON.stringify(args);  
+    let stringified = JSON.stringify(args);
+    for (let key in tmp) {
+      args.bidsReceived[key].renderer = tmp[key];
+    }
+    return stringified;
   }
+  return JSON.stringify(args);  
 }
 
 function addAuctionEnd(args) {
