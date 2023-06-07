@@ -77,10 +77,8 @@ function cleanAuctionEnd(args) {
 }
 
 function cleanCreatives(args) {
-  try {
-    let stringArgs = JSON.parse(JSON.stringify(args));
-    return filterAttributes(stringArgs, false);
-  } catch (e) {}
+  let stringArgs = JSON.parse(JSON.stringify(dereferenceWithoutRenderer(args)));
+  return filterAttributes(stringArgs, false);
 }
 
 function enhanceMediaType(arg) {
@@ -114,30 +112,31 @@ function addTimeout(args) {
   saveEvents[eventType].push(args);
   let argsCleaned = [];
   let argsDereferenced = {}
-  try {
-    let stringArgs = JSON.parse(JSON.stringify(args));
-    argsDereferenced = stringArgs;
-    argsDereferenced.forEach((attr) => {
-      argsCleaned.push(filterAttributes(JSON.parse(JSON.stringify(attr)), false));
-    });
-    if (auctionEnd[eventType] == undefined) { auctionEnd[eventType] = [] }
-    auctionEnd[eventType].push(argsCleaned);
-  } catch(e) {}  
+  let stringArgs = JSON.parse(JSON.stringify(dereferenceWithoutRenderer(args)));
+  argsDereferenced = stringArgs;
+  argsDereferenced.forEach((attr) => {
+    argsCleaned.push(filterAttributes(JSON.parse(JSON.stringify(attr)), false));
+  });
+  if (auctionEnd[eventType] == undefined) { auctionEnd[eventType] = [] }
+  auctionEnd[eventType].push(argsCleaned);
 }
 
+function dereferenceWithoutRenderer(args) {
+  const { render, ...objectStringify } = args;
+  if (render) {// make gulp test ok}
+  return objectStringify;
+}
 function addAuctionEnd(args) {
   let eventType = AUCTION_END;
   if (saveEvents[eventType] == undefined) { saveEvents[eventType] = [] }
   saveEvents[eventType].push(args);
-  try {
-    let argsCleaned = cleanAuctionEnd(JSON.parse(JSON.stringify(args)));
-    if (auctionEnd[eventType] == undefined) { auctionEnd[eventType] = [] }
-    auctionEnd[eventType].push(argsCleaned);
-  } catch(e) {}
+  let argsCleaned = cleanAuctionEnd(JSON.parse(JSON.stringify(dereferenceWithoutRenderer(args))));
+  if (auctionEnd[eventType] == undefined) { auctionEnd[eventType] = [] }
+  auctionEnd[eventType].push(argsCleaned);
 }
 
 function handleBidWon(args) {
-  args = enhanceMediaType(filterAttributes(JSON.parse(JSON.stringify(args)), true));
+  args = enhanceMediaType(filterAttributes(JSON.parse(JSON.stringify(dereferenceWithoutRenderer(args))), true));
   let increment = args['cpm'];
   if (typeof saveEvents['auctionEnd'] == 'object') {
     saveEvents['auctionEnd'].forEach((auction) => {
