@@ -122,8 +122,15 @@ function addTimeout(args) {
 }
 
 function dereferenceWithoutRenderer(args) {
-  let copy = {...args};
-  return JSON.stringify(copy);
+  if (args.renderer) {
+    let tmp = args.renderer;
+    delete args.renderer;
+    let stringified = JSON.stringify(args);
+    args['renderer'] = tmp;
+    return stringified;
+  } else {
+    return JSON.stringify(args);  
+  }
 }
 
 function addAuctionEnd(args) {
