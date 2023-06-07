@@ -128,7 +128,20 @@ function dereferenceWithoutRenderer(args) {
     let stringified = JSON.stringify(args);
     args['renderer'] = tmp;
     return stringified;
-  } else {
+  }
+  if (args.bidsReceived) {
+    let tmp = {}
+    for (let key in args.bidsReceived) {
+      if (args.bidsReceived[key].renderer) {
+        tmp[key] = args.bidsReceived[key].renderer;
+        delete args.bidsReceived[key].renderer;
+      }
+      let stringified = JSON.stringify(args);
+      for (let key in tmp) {
+        args.bidsReceived[key].renderer = tmp[key];
+      }
+      return stringified;
+    }
     return JSON.stringify(args);  
   }
 }
