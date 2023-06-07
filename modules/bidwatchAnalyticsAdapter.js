@@ -77,7 +77,7 @@ function cleanAuctionEnd(args) {
 }
 
 function cleanCreatives(args) {
-  let stringArgs = JSON.parse(JSON.stringify(dereferenceWithoutRenderer(args)));
+  let stringArgs = JSON.parse(dereferenceWithoutRenderer(args));
   return filterAttributes(stringArgs, false);
 }
 
@@ -112,7 +112,7 @@ function addTimeout(args) {
   saveEvents[eventType].push(args);
   let argsCleaned = [];
   let argsDereferenced = {}
-  let stringArgs = JSON.parse(JSON.stringify(dereferenceWithoutRenderer(args)));
+  let stringArgs = JSON.parse(dereferenceWithoutRenderer(args));
   argsDereferenced = stringArgs;
   argsDereferenced.forEach((attr) => {
     argsCleaned.push(filterAttributes(JSON.parse(JSON.stringify(attr)), false));
@@ -122,21 +122,32 @@ function addTimeout(args) {
 }
 
 function dereferenceWithoutRenderer(args) {
-  const { render, ...objectStringify } = args;
-  if (render) {/* make gulp test ok */}
-  return objectStringify;
+  let setty = new Set();
+  let stringified = JSON.stringify(args, (k, v) => {
+    if (typeof v === 'object') {
+      if (!setty.has(v)) {
+        setty.add(v);
+        return v;
+      } else {
+        return undefined;
+      }
+    }
+    return v;
+  });
+  return stringified;
 }
+
 function addAuctionEnd(args) {
   let eventType = AUCTION_END;
   if (saveEvents[eventType] == undefined) { saveEvents[eventType] = [] }
   saveEvents[eventType].push(args);
-  let argsCleaned = cleanAuctionEnd(JSON.parse(JSON.stringify(dereferenceWithoutRenderer(args))));
+  let argsCleaned = cleanAuctionEnd(JSON.parse(dereferenceWithoutRenderer(args)));
   if (auctionEnd[eventType] == undefined) { auctionEnd[eventType] = [] }
   auctionEnd[eventType].push(argsCleaned);
 }
 
 function handleBidWon(args) {
-  args = enhanceMediaType(filterAttributes(JSON.parse(JSON.stringify(dereferenceWithoutRenderer(args))), true));
+  args = enhanceMediaType(filterAttributes(JSON.parse(dereferenceWithoutRenderer(args)), true));
   let increment = args['cpm'];
   if (typeof saveEvents['auctionEnd'] == 'object') {
     saveEvents['auctionEnd'].forEach((auction) => {
