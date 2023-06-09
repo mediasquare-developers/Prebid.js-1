@@ -204,7 +204,7 @@ describe('oxxionRtdProvider', () => {
     it('call everything', function() {
       // oxxionSubmodule.onAuctionInitEvent(request, moduleConfig, userConsent);
       oxxionSubmodule.getBidRequestData(request, null, moduleConfig);
-      oxxionSubmodule.onBidResponseEven(auctionEnd.bidsReceived[0], moduleConfig);
+      oxxionSubmodule.onBidResponseEvent(auctionEnd.bidsReceived[0], moduleConfig);
       oxxionSubmodule.onBidResponseEvent(auctionEnd.bidsReceived[1], moduleConfig);
     });
     it('check bid filtering', function() {

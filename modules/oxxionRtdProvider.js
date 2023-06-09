@@ -189,9 +189,9 @@ function getFilteredAdUnitsOnBidRates (bidsRateInterests, adUnits, params, useSa
         let tmpBid = bid;
         tmpBid['code'] = adUnits[adUnitIndex].code;
         tmpBid['mediaTypes'] = adUnits[adUnitIndex].mediaTypes;
-        tmpBid['originalBidder'] = bidderAliasRegistry[bid.bidder] || bid.bidder;;
+        tmpBid['originalBidder'] = bidderAliasRegistry[bid.bidder] || bid.bidder; ;
         if (tmpBid.floorData) {
-	  delete tmpBid.floorData;
+          delete tmpBid.floorData;
         }
         filteredBids.push(tmpBid);
       }
