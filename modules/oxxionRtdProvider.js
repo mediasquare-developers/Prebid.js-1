@@ -8,6 +8,7 @@ const oxxionRtdSearchFor = [ 'adUnitCode', 'auctionId', 'bidder', 'bidderCode', 
 const LOG_PREFIX = 'oxxionRtdProvider submodule: ';
 
 const allAdUnits = [];
+const bidderAliasRegistry = adapterManager.aliasRegistry || {};
 
 /** @type {RtdSubmodule} */
 export const oxxionSubmodule = {
