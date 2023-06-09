@@ -2,6 +2,7 @@ import { submodule } from '../src/hook.js'
 import { deepAccess, logInfo, logError } from '../src/utils.js'
 import MD5 from 'crypto-js/md5.js';
 import { ajax } from '../src/ajax.js';
+import adapterManager from '../src/adapterManager.js';
 
 const oxxionRtdSearchFor = [ 'adUnitCode', 'auctionId', 'bidder', 'bidderCode', 'bidId', 'cpm', 'creativeId', 'currency', 'width', 'height', 'mediaType', 'netRevenue', 'originalCpm', 'originalCurrency', 'requestId', 'size', 'source', 'status', 'timeToRespond', 'transactionId', 'ttl', 'sizes', 'mediaTypes', 'src', 'userId', 'labelAny', 'adId' ];
 const LOG_PREFIX = 'oxxionRtdProvider submodule: ';
@@ -187,6 +188,7 @@ function getFilteredAdUnitsOnBidRates (bidsRateInterests, adUnits, params, useSa
         let tmpBid = bid;
         tmpBid['code'] = adUnits[adUnitIndex].code;
         tmpBid['mediaTypes'] = adUnits[adUnitIndex].mediaTypes;
+        tmpBid['originalBidder'] = bidderAliasRegistry[bid.bidder] || bid.bidder;;
         filteredBids.push(tmpBid);
       }
       delete bid._id;
