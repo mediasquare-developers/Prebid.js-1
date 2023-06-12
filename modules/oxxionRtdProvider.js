@@ -28,6 +28,7 @@ function init(config, userConsent) {
 }
 
 function getAdUnits(reqBidsConfigObj, callback, config, userConsent) {
+  logInfo(LOG_PREFIX + 'started with ' + config);
   if (config.params.threshold && config.params.samplingRate) {
     logInfo(LOG_PREFIX, 'getBidRequestData()', {
       reqBidsConfigObj,
