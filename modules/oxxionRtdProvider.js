@@ -28,13 +28,8 @@ function init(config, userConsent) {
 }
 
 function getAdUnits(reqBidsConfigObj, callback, config, userConsent) {
-  logInfo(LOG_PREFIX + 'started with ' + config);
+  logInfo(LOG_PREFIX + 'started with ', config);
   if (config.params.threshold && config.params.samplingRate) {
-    logInfo(LOG_PREFIX, 'getBidRequestData()', {
-      reqBidsConfigObj,
-      config,
-      userConsent
-    });
     let filteredBids;
     const requests = getRequestsList(reqBidsConfigObj);
     const gdpr = userConsent && userConsent.gdpr ? userConsent.gdpr.consentString : null;
@@ -43,7 +38,6 @@ function getAdUnits(reqBidsConfigObj, callback, config, userConsent) {
       requests
     };
     const endpoint = 'https://' + config.params.domain + '.oxxion.io/analytics/bid_rate_interests';
-    logInfo(LOG_PREFIX, 'getBidRequestData()', JSON.parse(JSON.stringify(payload)), endpoint);
     getPromisifiedAjax(endpoint, JSON.stringify(payload), {
       method: 'POST',
       withCredentials: true
@@ -51,9 +45,7 @@ function getAdUnits(reqBidsConfigObj, callback, config, userConsent) {
       if (bidsRateInterests.length) {
         [reqBidsConfigObj.adUnits, filteredBids] = getFilteredAdUnitsOnBidRates(bidsRateInterests, reqBidsConfigObj.adUnits, config.params, true);
       }
-      logInfo(LOG_PREFIX, 'getBidRequestData() adUnits', JSON.parse(JSON.stringify(reqBidsConfigObj.adUnits)));
       if (filteredBids.length > 0) {
-        logInfo(LOG_PREFIX, 'getBidRequestData() filtered bids', JSON.parse(JSON.stringify(filteredBids)));
         getPromisifiedAjax('https://' + config.params.domain + '.oxxion.io/analytics/request_rejecteds', JSON.stringify({'bids': filteredBids, 'gdpr': gdpr}), {
           method: 'POST',
           withCredentials: true

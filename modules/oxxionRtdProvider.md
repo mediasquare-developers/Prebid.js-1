@@ -54,4 +54,5 @@ pbjs.setConfig(
 |:---------------------------------|:-----------|:------------------------------------------------------------------------------------------------------------|
 | threshold                        | Float/Bool | False or minimum expected bid rate to call a bidder (ex: 1.0 for 1% bid rate).                              |
 | samplingRate                     | Integer    | Percentage of request not meeting the criterias to run anyway in order to check for any change.             |
+| bidders                          | Array      | Optional: If set, filtering will only be applied to bidders listed.                                         |
 
