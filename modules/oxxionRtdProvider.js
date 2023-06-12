@@ -23,7 +23,7 @@ export const oxxionSubmodule = {
 function init(config, userConsent) {
   if (!config.params || !config.params.domain) { return false }
   if (config.params.contexts && Array.isArray(config.params.contexts) && config.params.contexts.length > 0) { return true; }
-  if (config.params.threshold && config.params.samplingRate) { return true }
+  if (typeof config.params.threshold != 'undefined' && typeof config.params.samplingRate == 'number') { return true }
   return false;
 }
 
