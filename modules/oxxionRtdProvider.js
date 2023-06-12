@@ -29,7 +29,7 @@ function init(config, userConsent) {
 
 function getAdUnits(reqBidsConfigObj, callback, config, userConsent) {
   logInfo(LOG_PREFIX + 'started with ', config);
-  if (config.params.threshold && config.params.samplingRate) {
+  if (typeof config.params.threshold != 'undefined' && typeof config.params.samplingRate == 'number') {
     let filteredBids;
     const requests = getRequestsList(reqBidsConfigObj);
     const gdpr = userConsent && userConsent.gdpr ? userConsent.gdpr.consentString : null;
