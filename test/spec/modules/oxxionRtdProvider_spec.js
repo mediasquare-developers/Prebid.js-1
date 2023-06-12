@@ -7,8 +7,8 @@ const moduleConfig = {
   params: {
     domain: 'test.endpoint',
     contexts: ['instream', 'outstream'],
-    samplingRate: 90,
-    threshold: 0.9,
+    samplingRate: 10,
+    threshold: false,
     timeout: 200,
   }
 };
@@ -178,7 +178,7 @@ let originalBidderRequests = [{
 
 let bidInterests = [
   {'id': 0, 'rate': 50.0, 'suggestion': true},
-  {'id': 1, 'rate': 0.0, 'suggestion': false},
+  {'id': 1, 'rate': 12.0, 'suggestion': false},
   {'id': 2, 'rate': 0.0, 'suggestion': true}
 ];
 

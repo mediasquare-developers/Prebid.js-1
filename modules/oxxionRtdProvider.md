@@ -31,6 +31,8 @@ pbjs.setConfig(
           params: {
             domain: "test.endpoint",
             contexts: ["instream"],
+            threshold: false,
+            samplingRate: 10,
           }
        }
     ]
@@ -39,10 +41,17 @@ pbjs.setConfig(
 )
 ```
 
-# setConfig Parameters
+# setConfig Parameters for video
 
-| Name                             | Type     | Description                                                                                                 |
-|:---------------------------------|:---------|:------------------------------------------------------------------------------------------------------------|
-| domain                           | String   | This string identifies yourself in Oxxion's systems and is provided to you by your Oxxion representative.   |
-| contexts                         | Array    | Array defining which video contexts to add tracking events into. Values can be instream and/or outstream.   |
+| Name                             | Type       | Description                                                                                                 |
+|:---------------------------------|:-----------|:------------------------------------------------------------------------------------------------------------|
+| domain                           | String     | This string identifies yourself in Oxxion's systems and is provided to you by your Oxxion representative.   |
+| contexts                         | Array      | Array defining which video contexts to add tracking events into. Values can be instream and/or outstream.   |
+
+# setConfig Parameters for bidder filtering
+
+| Name                             | Type       | Description                                                                                                 |
+|:---------------------------------|:-----------|:------------------------------------------------------------------------------------------------------------|
+| threshold                        | Float/Bool | False or minimum expected bid rate to call a bidder (ex: 1.0 for 1% bid rate).                              |
+| samplingRate                     | Integer    | Percentage of request not meeting the criterias to run anyway in order to check for any change.             |
 
