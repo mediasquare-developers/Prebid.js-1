@@ -184,19 +184,23 @@ function getFilteredAdUnitsOnBidRates (bidsRateInterests, adUnits, params, useSa
   // Filter bids and adUnits against interesting bids rates
   const newAdUnits = adUnits.filter(({ bids = [] }, adUnitIndex) => {
     adUnits[adUnitIndex].bids = bids.filter(bid => {
-      const index = interestingBidsRates.findIndex(({ id }) => id === bid._id);
-      if (index == -1) {
-        let tmpBid = bid;
-        tmpBid['code'] = adUnits[adUnitIndex].code;
-        tmpBid['mediaTypes'] = adUnits[adUnitIndex].mediaTypes;
-        tmpBid['originalBidder'] = bidderAliasRegistry[bid.bidder] || bid.bidder;
-        if (tmpBid.floorData) {
-          delete tmpBid.floorData;
+      if (!params.bidders || params.bidders.includes(bid.bidder)) {
+        const index = interestingBidsRates.findIndex(({ id }) => id === bid._id);
+        if (index == -1) {
+          let tmpBid = bid;
+          tmpBid['code'] = adUnits[adUnitIndex].code;
+          tmpBid['mediaTypes'] = adUnits[adUnitIndex].mediaTypes;
+          tmpBid['originalBidder'] = bidderAliasRegistry[bid.bidder] || bid.bidder;
+          if (tmpBid.floorData) {
+            delete tmpBid.floorData;
+          }
+          filteredBids.push(tmpBid);
         }
-        filteredBids.push(tmpBid);
+        delete bid._id;
+        return index !== -1;
+      } else {
+        return true;
       }
-      delete bid._id;
-      return index !== -1;
     });
     return !!adUnits[adUnitIndex].bids.length;
   });
